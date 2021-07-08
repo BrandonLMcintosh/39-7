@@ -27,14 +27,14 @@ import "./Board.css";
  *
  **/
 
-function Board({ nrows, ncols, chanceLightStartsOn }) {
+function Board({ nrows = 8, ncols = 8, chanceLightStartsOn = 0.5 }) {
 	const [board, setBoard] = useState(createBoard());
 
 	/** create a board nrows high/ncols wide, each cell randomly lit or unlit */
 	function createBoard() {
 		const initialBoard = [];
 		const _randomIsOnOrOff = () => {
-			return Math.floor(Math.random() * 1000) % 2 === 1;
+			return Math.random() <= chanceLightStartsOn;
 		};
 		for (let rows = 0; rows < nrows; rows++) {
 			const row = [];
@@ -49,7 +49,7 @@ function Board({ nrows, ncols, chanceLightStartsOn }) {
 	function hasWon() {
 		for (let row = 0; row < nrows; row++) {
 			for (let col = 0; col < ncols; col++) {
-				if (row[col]) return false;
+				if (board[row][col]) return false;
 			}
 		}
 		return true;
@@ -67,21 +67,35 @@ function Board({ nrows, ncols, chanceLightStartsOn }) {
 				}
 			};
 
-			// TODO: Make a (deep) copy of the oldBoard
+			const boardCopy = oldBoard.map((row) => row.map((col) => col));
 
-			// TODO: in the copy, flip this cell and the cells around it
+			const cascade = (y, x, boardCopy) => {
+				flipCell(y, x, boardCopy);
+				flipCell(y - 1, x, boardCopy);
+				flipCell(y, x + 1, boardCopy);
+				flipCell(y, x - 1, boardCopy);
+			};
 
-			// TODO: return the copy
+			cascade(y, x, boardCopy);
+
+			return boardCopy;
 		});
 	}
 
 	// if the game is won, just show a winning msg & render nothing else
+	if (hasWon()) return alert("you've won!");
 
-	// TODO
-
-	// make table board
-
-	// TODO
+	return (
+		<div className="board">
+			{board.map((row, y) => (
+				<tr>
+					{row.map((col, x) => (
+						<Cell flipCellsAroundMe={(evt) => flipCellsAround(`${y}-${x}`)} isLit={col} />
+					))}
+				</tr>
+			))}
+		</div>
+	);
 }
 
 export default Board;
